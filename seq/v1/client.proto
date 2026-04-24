@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package seq.v1;
+
+// Client -> server topic subscriptions. Not all topics are implemented yet;
+// the daemon currently only honors SPAWNS, ZONE, and PLAYER.
+enum Topic {
+  TOPIC_UNSPECIFIED = 0;
+  SPAWNS = 1;
+  ZONE = 2;
+  PLAYER = 3;
+  CHAT = 4;
+  COMBAT = 5;
+  GROUP = 6;
+  EXP = 7;
+}
+
+message Subscribe {
+  repeated Topic topics = 1;
+
+  // When set together, the daemon will attempt to resume from `last_seq`
+  // using a short ring buffer. Phase 2 feature — Phase 1 always sends a
+  // fresh Snapshot.
+  optional string session_id = 2;
+  optional uint64 last_seq = 3;
+}
+
+message ClientEnvelope {
+  oneof payload {
+    Subscribe subscribe = 1;
+  }
+}

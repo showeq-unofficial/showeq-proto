@@ -1,0 +1,9 @@
+gen/
+node_modules/
+*.pb.go
+*.pb.cc
+*.pb.h
+*.pb.ts
+*_pb.ts
+*_pb.js
+target/

@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package seq.v1;
+
+// Every server->client message is wrapped in an Envelope with a monotonic
+// `seq` so clients can detect gaps and resume.
+message Envelope {
+  uint64 seq = 1;
+  uint64 server_ts_ms = 2;
+
+  oneof payload {
+    Snapshot       snapshot      = 10;
+    ZoneChanged    zone_changed  = 11;
+    SpawnAdded     spawn_added   = 12;
+    SpawnUpdated   spawn_updated = 13;
+    SpawnRemoved   spawn_removed = 14;
+    SpawnKilled    spawn_killed  = 15;
+    PlayerStats    player_stats  = 16;
+    ChatMessage    chat          = 17;
+    ExperienceTick exp           = 18;
+    GroupUpdate    group         = 19;
+  }
+}
+
+// EverQuest ships positions as int16 with a 3-bit fractional shift (see
+// showeq-c/src/fixpt.h). We pass the raw fixed-point values through —
+// clients that want world units do the shift.
+message Pos {
+  sint32 x = 1;
+  sint32 y = 2;
+  sint32 z = 3;
+  sint32 vx = 4;
+  sint32 vy = 5;
+  sint32 vz = 6;
+  int32  heading = 7;
+  int32  delta_heading = 8;
+  uint32 animation = 9;
+}
+
+enum SpawnType {
+  SPAWN_UNSPECIFIED = 0;
+  NPC = 1;
+  PC = 2;
+  CORPSE_PC = 3;
+  CORPSE_NPC = 4;
+  DOOR = 5;
+  DROP = 6;
+}
+
+message Spawn {
+  uint32     id = 1;
+  string     name = 2;
+  string     last_name = 3;
+  uint32     level = 4;
+  uint32     race = 5;
+  uint32     class_ = 6;
+  uint32     deity = 7;
+  uint32     hp_cur = 8;
+  uint32     hp_max = 9;
+  SpawnType  type = 10;
+  Pos        pos = 11;
+  uint32     guild_id = 12;
+  uint32     guild_server_id = 13;
+  bool       is_gm = 14;
+  bool       is_linkdead = 15;
+  bool       is_invis = 16;
+}
+
+message Snapshot {
+  string         zone_short = 1;
+  string         zone_long = 2;
+  uint32         player_id = 3;
+  repeated Spawn spawns = 4;
+}
+
+message ZoneChanged {
+  string zone_short = 1;
+  string zone_long = 2;
+}
+
+message SpawnAdded {
+  Spawn spawn = 1;
+}
+
+// Proto3 field presence (`optional`) gives us per-field diffs: only changed
+// fields are sent on the wire.
+message SpawnUpdated {
+  uint32          id = 1;
+  optional Pos    pos = 2;
+  optional uint32 hp_cur = 3;
+  optional uint32 level = 4;
+  optional uint32 animation = 5;
+  optional string name = 6;
+}
+
+message SpawnRemoved {
+  uint32 id = 1;
+}
+
+message SpawnKilled {
+  uint32 deceased_id = 1;
+  uint32 killer_id = 2;
+}
+
+// Placeholder messages for later phases. Left intentionally thin so field
+// numbers can be assigned meaningfully once the widgets are designed.
+message PlayerStats    { reserved 1 to 15; }
+message ChatMessage    { reserved 1 to 15; }
+message ExperienceTick { reserved 1 to 15; }
+message GroupUpdate    { reserved 1 to 15; }

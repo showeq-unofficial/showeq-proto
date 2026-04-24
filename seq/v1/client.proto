@@ -18,9 +18,14 @@ enum Topic {
 message Subscribe {
   repeated Topic topics = 1;
 
-  // When set together, the daemon will attempt to resume from `last_seq`
-  // using a short ring buffer. Phase 2 feature — Phase 1 always sends a
-  // fresh Snapshot.
+  // Session resume (deferred post-Phase-2, tracked in MODERNIZATION_PLAN.md).
+  //
+  // Intent: when set together, the daemon looks up `session_id` in a short
+  // per-session ring buffer and replays envelopes with seq > last_seq,
+  // falling back to a fresh Snapshot if the gap exceeds the buffer window
+  // (design target ~30s). Field numbers reserved up front so adding the
+  // implementation later is additive, not a proto break. Today the daemon
+  // ignores these fields and always sends a fresh Snapshot.
   optional string session_id = 2;
   optional uint64 last_seq = 3;
 }

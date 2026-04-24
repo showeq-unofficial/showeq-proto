@@ -32,6 +32,10 @@ message Pos {
   sint32 vx = 4;
   sint32 vy = 5;
   sint32 vz = 6;
+  // Heading in degrees, 0..359, compass convention (0=N, 90=E, 180=S,
+  // 270=W). Daemon converts from EQ's raw representation (12-bit for the
+  // player, 8-bit for other spawns, both stored truncated to int8_t in
+  // the legacy classes) so clients don't have to special-case formats.
   int32  heading = 7;
   int32  delta_heading = 8;
   uint32 animation = 9;
@@ -64,6 +68,11 @@ message Spawn {
   bool       is_gm = 14;
   bool       is_linkdead = 15;
   bool       is_invis = 16;
+  // Bitmask of FilterMgr categories this spawn matched (Hunt=1, Caution=2,
+  // Danger=4, Locate=8, Alert=16, Filtered=32, Tracer=64, ...). Mirrors
+  // showeq-c/src/spawn.h:147 — FilterMgr recomputes on add and on each
+  // spawn update.
+  uint32     filter_flags = 17;
 }
 
 message Snapshot {
@@ -71,11 +80,60 @@ message Snapshot {
   string         zone_long = 2;
   uint32         player_id = 3;
   repeated Spawn spawns = 4;
+  // Geometry of the current zone's .map file. Omitted if the daemon has not
+  // resolved a map for the zone (e.g. before the first zone packet, or when
+  // no .map file is installed for the zone).
+  // TODO(phase-future): revisit serving maps over a static HTTP endpoint so
+  // the browser can cache them across sessions. Inline for v1 keeps one
+  // transport.
+  MapGeometry    geometry = 5;
 }
 
 message ZoneChanged {
-  string zone_short = 1;
-  string zone_long = 2;
+  string      zone_short = 1;
+  string      zone_long = 2;
+  // See Snapshot.geometry TODO.
+  MapGeometry geometry = 3;
+}
+
+// Vector geometry of a zone map, mirroring the layer/line/location model
+// used by showeq-c/src/mapcore.{h,cpp}. For wire efficiency a line's points
+// are transmitted as three packed coordinate arrays rather than a repeated
+// Point message; zone maps frequently exceed 10k points and per-point
+// message overhead would triple the payload.
+message MapLine {
+  // Hex color string as stored in the .map file (e.g. "#ff8040"). The
+  // client maps these to its palette; daemon does not normalize.
+  string         color = 1;
+  // Packed coordinate arrays. x.size() == y.size(). z is either empty
+  // (line has no height information), length 1 (single shared z for the
+  // whole line), or equal to x.size() (per-point z).
+  repeated sint32 x = 2 [packed = true];
+  repeated sint32 y = 3 [packed = true];
+  repeated sint32 z = 4 [packed = true];
+  // 0-based layer index this line came from (mirrors MapData::mapLayer
+  // ordering — base = 0, _1 = 1, _2 = 2, ...). Lets the client toggle
+  // individual layer visibility without re-streaming.
+  uint32         layer = 5;
+}
+
+message MapLocation {
+  string name    = 1;
+  string color   = 2;
+  sint32 x       = 3;
+  sint32 y       = 4;
+  sint32 z       = 5;
+  bool   z_valid = 6;
+  uint32 layer   = 7;
+}
+
+message MapGeometry {
+  sint32               min_x     = 1;
+  sint32               min_y     = 2;
+  sint32               max_x     = 3;
+  sint32               max_y     = 4;
+  repeated MapLine     lines     = 5;
+  repeated MapLocation locations = 6;
 }
 
 message SpawnAdded {
@@ -91,6 +149,7 @@ message SpawnUpdated {
   optional uint32 level = 4;
   optional uint32 animation = 5;
   optional string name = 6;
+  optional uint32 filter_flags = 7;
 }
 
 message SpawnRemoved {

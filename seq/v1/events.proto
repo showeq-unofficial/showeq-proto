@@ -161,9 +161,69 @@ message SpawnKilled {
   uint32 killer_id = 2;
 }
 
+// Snapshot of the user's character state. Sent once after Subscribe and
+// then re-sent whenever any of the source Player signals fire (statChanged,
+// hpChanged, manaChanged, levelChanged, expChangedInt, expAltChangedInt).
+// Fields default to 0 before the player profile arrives.
+message PlayerStats {
+  uint32 hp_cur      = 1;
+  uint32 hp_max      = 2;
+  uint32 mana_cur    = 3;
+  uint32 mana_max    = 4;
+  // Stamina here is showeq-c's LIST_STAM: `100 - m_fatigue` against a max
+  // of 100. EQ's separate "endurance" bar isn't tracked by Player.
+  uint32 stamina_cur = 5;
+  uint32 stamina_max = 6;
+  uint32 level       = 7;
+  uint32 exp_cur     = 8;
+  uint32 exp_max     = 9;
+  uint32 aa_exp_cur  = 10;
+  uint32 aa_exp_max  = 11;
+  uint32 aa_points   = 12;
+  string name        = 13;
+  uint32 class_      = 14;
+  uint32 race        = 15;
+  uint32 str         = 16;
+  uint32 sta         = 17;
+  uint32 agi         = 18;
+  uint32 dex         = 19;
+  uint32 wis         = 20;
+  uint32 int_        = 21;
+  uint32 cha         = 22;
+}
+
+// Single chat-channel message. Daemon currently only forwards player-to-
+// player channels (Guild/Group/Shout/Auction/OOC/Tell/Say/Raid); system
+// messages (loot rolls, exp ticks, NPC speech) are filtered out at the
+// daemon and will get their own message types in a later phase if wanted.
+message ChatMessage {
+  // Channel index from showeq-daemon/src/message.h's MessageType enum:
+  // 0=Guild, 2=Group, 3=Shout, 4=Auction, 5=OOC, 7=Tell, 8=Say,
+  // 11=GMSay, 14=GMTell, 15=Raid.
+  uint32 channel = 1;
+  string from    = 2;
+  // Target (recipient) name — only meaningful for tells; empty for
+  // broadcast channels.
+  string target  = 3;
+  string text    = 4;
+}
+
+message GroupMember {
+  uint32 slot     = 1;   // 0..MAX_GROUP_MEMBERS-1 (= 5)
+  string name     = 2;   // empty if the slot isn't filled
+  bool   in_zone  = 3;   // true when GroupMgr has a Spawn for this slot
+  uint32 spawn_id = 4;   // 0 when out of zone
+  uint32 level    = 5;
+  uint32 class_   = 6;
+}
+
+// Sent on Subscribe + on every GroupMgr `added`/`removed`/`cleared`
+// signal. `members` always carries all 6 slots (unfilled slots have
+// empty name + in_zone=false) so the client can render fixed slots.
+message GroupUpdate {
+  repeated GroupMember members = 1;
+}
+
 // Placeholder messages for later phases. Left intentionally thin so field
 // numbers can be assigned meaningfully once the widgets are designed.
-message PlayerStats    { reserved 1 to 15; }
-message ChatMessage    { reserved 1 to 15; }
 message ExperienceTick { reserved 1 to 15; }
-message GroupUpdate    { reserved 1 to 15; }

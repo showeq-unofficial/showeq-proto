@@ -23,6 +23,8 @@ message Envelope {
     CombatEvent       combat        = 21;
     CategoriesUpdate  categories    = 22;
     FilterRulesUpdate filter_rules  = 23;
+    PrefsSnapshot     prefs         = 24;
+    PrefChanged       pref_changed  = 25;
   }
 }
 
@@ -312,3 +314,34 @@ message FilterRulesUpdate {
 // Placeholder messages for later phases. Left intentionally thin so field
 // numbers can be assigned meaningfully once the widgets are designed.
 message ExperienceTick { reserved 1 to 15; }
+
+// One global preference. Daemon-side storage stays XML (XMLPreferences,
+// inherited from showeq-c) but only an allowlisted subset is published
+// over the wire — the daemon's PrefsBroker decides which keys are
+// shareable. The value is typed via oneof; the daemon converts to/from
+// XMLPreferences's QVariant storage on its side.
+message Pref {
+  string section = 1;
+  string key     = 2;
+  oneof value {
+    string string_value = 3;
+    int64  int_value    = 4;
+    double double_value = 5;
+    bool   bool_value   = 6;
+  }
+}
+
+// Sent on Subscribe with every allowlisted pref's current value (or its
+// default if no user override is set). Replaces wholesale; clients should
+// not assume incremental.
+message PrefsSnapshot {
+  repeated Pref prefs = 1;
+}
+
+// Broadcast to every connected client whenever an allowlisted pref
+// changes — either via SetPref from any client, or via a non-RPC source
+// inside the daemon (e.g. legacy code paths that still call
+// pSEQPrefs->setPref* directly).
+message PrefChanged {
+  Pref pref = 1;
+}

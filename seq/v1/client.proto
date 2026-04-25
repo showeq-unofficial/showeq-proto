@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package seq.v1;
 
+import "seq/v1/events.proto";
+
 // Client -> server topic subscriptions. Not all topics are implemented yet;
 // the daemon currently only honors SPAWNS, ZONE, and PLAYER.
 enum Topic {
@@ -46,10 +48,20 @@ message RemoveFilterRule {
   bool   per_zone    = 3;
 }
 
+// Client -> server preference mutation. Daemon validates against the
+// PrefsBroker allowlist, applies via XMLPreferences, persists the user
+// XML file, and broadcasts a PrefChanged envelope to every connected
+// client (including the originator). Unknown / not-allowlisted keys are
+// silently dropped — no error envelope yet.
+message SetPref {
+  Pref pref = 1;
+}
+
 message ClientEnvelope {
   oneof payload {
     Subscribe        subscribe          = 1;
     AddFilterRule    add_filter_rule    = 2;
     RemoveFilterRule remove_filter_rule = 3;
+    SetPref          set_pref           = 4;
   }
 }

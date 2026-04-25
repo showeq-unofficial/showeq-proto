@@ -9,18 +9,19 @@ message Envelope {
   uint64 server_ts_ms = 2;
 
   oneof payload {
-    Snapshot       snapshot      = 10;
-    ZoneChanged    zone_changed  = 11;
-    SpawnAdded     spawn_added   = 12;
-    SpawnUpdated   spawn_updated = 13;
-    SpawnRemoved   spawn_removed = 14;
-    SpawnKilled    spawn_killed  = 15;
-    PlayerStats    player_stats  = 16;
-    ChatMessage    chat          = 17;
-    ExperienceTick exp           = 18;
-    GroupUpdate    group         = 19;
-    BuffsUpdate    buffs         = 20;
-    CombatEvent    combat        = 21;
+    Snapshot         snapshot      = 10;
+    ZoneChanged      zone_changed  = 11;
+    SpawnAdded       spawn_added   = 12;
+    SpawnUpdated     spawn_updated = 13;
+    SpawnRemoved     spawn_removed = 14;
+    SpawnKilled      spawn_killed  = 15;
+    PlayerStats      player_stats  = 16;
+    ChatMessage      chat          = 17;
+    ExperienceTick   exp           = 18;
+    GroupUpdate      group         = 19;
+    BuffsUpdate      buffs         = 20;
+    CombatEvent      combat        = 21;
+    CategoriesUpdate categories    = 22;
   }
 }
 
@@ -75,6 +76,12 @@ message Spawn {
   // showeq-c/src/spawn.h:147 — FilterMgr recomputes on add and on each
   // spawn update.
   uint32     filter_flags = 17;
+  // Indices (into the latest CategoriesUpdate.categories) of the
+  // user-defined Category groupings that this spawn matches. Computed
+  // by the daemon on SpawnAdded only — incremental SpawnUpdated events
+  // do not refresh memberships, so name changes mid-life won't move a
+  // spawn between categories. (Acceptable v1 simplification.)
+  repeated uint32 category_ids = 18 [packed = true];
 }
 
 message Snapshot {
@@ -261,6 +268,23 @@ message CombatEvent {
   int32  damage      = 6;
   uint32 spell_id    = 7;
   string spell_name  = 8;
+}
+
+// One user-defined Category from showeq-daemon/src/category.h's
+// CategoryMgr — name + display color. The daemon's filter pattern
+// (Category::filter / filterout strings) is not exposed; matching
+// happens daemon-side, and the client only sees the resulting per-
+// spawn category_ids list.
+message Category {
+  uint32 id    = 1;   // index into CategoriesUpdate.categories
+  string name  = 2;
+  string color = 3;   // "#rrggbb"
+}
+
+// Sent on Subscribe + on every CategoryMgr add/del/cleared/loaded
+// signal. Replaces the previous list wholesale.
+message CategoriesUpdate {
+  repeated Category categories = 1;
 }
 
 // Placeholder messages for later phases. Left intentionally thin so field

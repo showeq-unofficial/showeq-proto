@@ -9,19 +9,20 @@ message Envelope {
   uint64 server_ts_ms = 2;
 
   oneof payload {
-    Snapshot         snapshot      = 10;
-    ZoneChanged      zone_changed  = 11;
-    SpawnAdded       spawn_added   = 12;
-    SpawnUpdated     spawn_updated = 13;
-    SpawnRemoved     spawn_removed = 14;
-    SpawnKilled      spawn_killed  = 15;
-    PlayerStats      player_stats  = 16;
-    ChatMessage      chat          = 17;
-    ExperienceTick   exp           = 18;
-    GroupUpdate      group         = 19;
-    BuffsUpdate      buffs         = 20;
-    CombatEvent      combat        = 21;
-    CategoriesUpdate categories    = 22;
+    Snapshot          snapshot      = 10;
+    ZoneChanged       zone_changed  = 11;
+    SpawnAdded        spawn_added   = 12;
+    SpawnUpdated      spawn_updated = 13;
+    SpawnRemoved      spawn_removed = 14;
+    SpawnKilled       spawn_killed  = 15;
+    PlayerStats       player_stats  = 16;
+    ChatMessage       chat          = 17;
+    ExperienceTick    exp           = 18;
+    GroupUpdate       group         = 19;
+    BuffsUpdate       buffs         = 20;
+    CombatEvent       combat        = 21;
+    CategoriesUpdate  categories    = 22;
+    FilterRulesUpdate filter_rules  = 23;
   }
 }
 
@@ -285,6 +286,27 @@ message Category {
 // signal. Replaces the previous list wholesale.
 message CategoriesUpdate {
   repeated Category categories = 1;
+}
+
+// One filter rule from FilterMgr. `filter_type` is the showeq-c
+// FilterTypeDefs index (0=Hunt, 1=Caution, 2=Danger, 3=Locate, 4=Alert,
+// 5=Filtered, 6=Tracer). Pattern syntax matches the legacy FilterItem
+// (substring match plus optional ":<minlevel>-<maxlevel>" suffix).
+// `per_zone` distinguishes the always-on global file from the
+// per-zone-shortname overlay file.
+message FilterRule {
+  uint32 filter_type = 1;
+  string pattern     = 2;
+  uint32 min_level   = 3;
+  uint32 max_level   = 4;
+  bool   per_zone    = 5;
+}
+
+// Sent on Subscribe + on every FilterMgr filtersChanged signal.
+// Carries the full current rule set (global + per-zone) so editors
+// can render a single combined view.
+message FilterRulesUpdate {
+  repeated FilterRule rules = 1;
 }
 
 // Placeholder messages for later phases. Left intentionally thin so field

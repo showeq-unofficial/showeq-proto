@@ -30,8 +30,26 @@ message Subscribe {
   optional uint64 last_seq = 3;
 }
 
+// Client -> server filter-rule mutation. Daemon applies via
+// FilterMgr::addFilter / addZoneFilter, persists to the corresponding
+// XML file, and broadcasts an updated FilterRulesUpdate to all
+// connected clients on the resulting filtersChanged signal.
+message AddFilterRule {
+  uint32 filter_type = 1;
+  string pattern     = 2;
+  bool   per_zone    = 3;
+}
+
+message RemoveFilterRule {
+  uint32 filter_type = 1;
+  string pattern     = 2;
+  bool   per_zone    = 3;
+}
+
 message ClientEnvelope {
   oneof payload {
-    Subscribe subscribe = 1;
+    Subscribe        subscribe          = 1;
+    AddFilterRule    add_filter_rule    = 2;
+    RemoveFilterRule remove_filter_rule = 3;
   }
 }

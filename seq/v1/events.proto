@@ -19,6 +19,8 @@ message Envelope {
     ChatMessage    chat          = 17;
     ExperienceTick exp           = 18;
     GroupUpdate    group         = 19;
+    BuffsUpdate    buffs         = 20;
+    CombatEvent    combat        = 21;
   }
 }
 
@@ -222,6 +224,43 @@ message GroupMember {
 // empty name + in_zone=false) so the client can render fixed slots.
 message GroupUpdate {
   repeated GroupMember members = 1;
+}
+
+// One active buff on the player. Daemon resends the full BuffsUpdate
+// (all currently-active buffs) on every SpellShell add/del/change/clear.
+// `duration_s` is the seconds remaining as of `captured_ms`; clients
+// tick down locally without further server round-trips.
+message Buff {
+  uint32 spell_id    = 1;
+  string spell_name  = 2;
+  int32  duration_s  = 3;
+  uint32 caster_id   = 4;
+  string caster_name = 5;
+  uint32 target_id   = 6;
+  string target_name = 7;
+}
+
+message BuffsUpdate {
+  // Server clock when this snapshot was taken. Clients pair this with
+  // each Buff's duration_s to compute remaining time, accounting for
+  // any drift between server and client wall clocks.
+  uint64 captured_ms = 1;
+  repeated Buff buffs = 2;
+}
+
+// Single combat event. Daemon emits one per parsed OP_Action2 on the
+// monitored stream; web clients accumulate into a scrolling combat log.
+// `type` is the EQ "action type" byte (bash/kick/cast/...) — see the
+// type byte at offset 0040 in struct action2Struct (everquest.h:2042).
+message CombatEvent {
+  uint32 source_id   = 1;
+  string source_name = 2;
+  uint32 target_id   = 3;
+  string target_name = 4;
+  uint32 type        = 5;
+  int32  damage      = 6;
+  uint32 spell_id    = 7;
+  string spell_name  = 8;
 }
 
 // Placeholder messages for later phases. Left intentionally thin so field

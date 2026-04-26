@@ -92,6 +92,12 @@ message SetPref {
   Pref pref = 1;
 }
 
+// Client -> server request to enumerate available pcap capture devices
+// (mirrors showeq-c's "Select Network Device" dialog backed by
+// pcap_findalldevs). The daemon replies with a DevicesList envelope on
+// the same connection only — not broadcast. Empty payload.
+message ListDevices {}
+
 message ClientEnvelope {
   oneof payload {
     Subscribe        subscribe          = 1;
@@ -101,5 +107,6 @@ message ClientEnvelope {
     ReloadFilters    reload_filters     = 5;
     EditFilterRule   edit_filter_rule   = 6;
     SaveFilters      save_filters       = 7;
+    ListDevices      list_devices       = 8;
   }
 }

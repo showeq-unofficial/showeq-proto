@@ -31,6 +31,7 @@ message Envelope {
     SpawnPointUpdated spawn_point_updated  = 29;
     SpawnPointRemoved spawn_point_removed  = 30;
     SpawnPointsCleared spawn_points_cleared = 31;
+    DevicesList       devices_list         = 32;
   }
 }
 
@@ -416,3 +417,19 @@ message SpawnPointRemoved { string key = 1; }
 // SpawnMonitor::clear() (zone change, explicit "clear all" from a
 // client). Empty payload — clients drop their entire spawn-point map.
 message SpawnPointsCleared {}
+
+// One pcap interface as reported by pcap_findalldevs. Mirrors the
+// minimum set of fields a UI needs to render a device picker —
+// description and is_loopback are best-effort and may be empty/false
+// on platforms or pcap builds that don't supply them.
+message NetworkDevice {
+  string name = 1;          // pcap interface name (e.g. "eth0", "wlp3s0")
+  string description = 2;
+  bool   is_loopback = 3;
+}
+
+// Response to a ListDevices request. Sent only to the requesting
+// session — not broadcast — since it's session-scoped UI data.
+message DevicesList {
+  repeated NetworkDevice devices = 1;
+}

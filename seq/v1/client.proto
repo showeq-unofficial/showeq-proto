@@ -48,6 +48,41 @@ message RemoveFilterRule {
   bool   per_zone    = 3;
 }
 
+// Client -> server filter-rule edit. Daemon applies via FilterMgr's
+// editFilter / editZoneFilter, which do an atomic remove(old)+add(new)
+// with a single filtersChanged emit — so other connected clients see
+// one FilterRulesUpdate instead of a transient empty state followed
+// by a re-add. filter_type and per_zone identify the rule; new_pattern
+// replaces old_pattern. Changing filter_type or per_zone is not
+// supported via this message — use Remove + Add instead.
+message EditFilterRule {
+  uint32 filter_type  = 1;
+  string old_pattern  = 2;
+  string new_pattern  = 3;
+  bool   per_zone     = 4;
+}
+
+// Client -> server trigger to persist the in-memory filter rules to
+// the corresponding XML file on the daemon side. Mirrors showeq-c's
+// "Save Filters" / "Save Zone Filters" menu items: filter mutations
+// (add / remove / edit) live in memory only until an explicit save,
+// so the operator's hand-curated XML files aren't stomped on every
+// click. per_zone=false writes the global filters file; per_zone=true
+// writes the current zone's overlay file. The daemon does not emit
+// any acknowledgement envelope today — fire and forget.
+message SaveFilters {
+  bool per_zone = 1;
+}
+
+// Client -> server trigger to re-read filter XML files from disk. Used
+// when an operator edits the files outside the daemon and wants the
+// running process to pick up the changes without restart. The daemon
+// reloads global + current-zone filter sets, then emits the usual
+// filtersChanged signal — SpawnShell re-evaluates flag bits on every
+// spawn and SessionAdapter broadcasts a fresh FilterRulesUpdate to
+// every connected client. No fields needed.
+message ReloadFilters {}
+
 // Client -> server preference mutation. Daemon validates against the
 // PrefsBroker allowlist, applies via XMLPreferences, persists the user
 // XML file, and broadcasts a PrefChanged envelope to every connected
@@ -63,5 +98,8 @@ message ClientEnvelope {
     AddFilterRule    add_filter_rule    = 2;
     RemoveFilterRule remove_filter_rule = 3;
     SetPref          set_pref           = 4;
+    ReloadFilters    reload_filters     = 5;
+    EditFilterRule   edit_filter_rule   = 6;
+    SaveFilters      save_filters       = 7;
   }
 }

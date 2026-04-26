@@ -101,6 +101,12 @@ message Snapshot {
   // the browser can cache them across sessions. Inline for v1 keeps one
   // transport.
   MapGeometry    geometry = 5;
+  // Session id assigned (or echoed back) by the daemon. Clients persist
+  // it and pass it via Subscribe.session_id on reconnect to ask for a
+  // resume from Subscribe.last_seq instead of a fresh Snapshot. Empty
+  // for the daemon-internal --record-golden adapter (no client to
+  // resume).
+  string         session_id = 6;
 }
 
 message ZoneChanged {

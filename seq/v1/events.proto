@@ -25,6 +25,8 @@ message Envelope {
     FilterRulesUpdate filter_rules  = 23;
     PrefsSnapshot     prefs         = 24;
     PrefChanged       pref_changed  = 25;
+    Considered        considered    = 26;
+    Targeted          targeted      = 27;
   }
 }
 
@@ -344,4 +346,20 @@ message PrefsSnapshot {
 // pSEQPrefs->setPref* directly).
 message PrefChanged {
   Pref pref = 1;
+}
+
+// Fired when a /consider packet (OP_Consider) is parsed. spawn_id is the
+// considered target's id (0 if the target is no longer in the spawn list,
+// though the daemon currently filters those out at the source). Clients
+// decide locally whether this should drive UI selection.
+message Considered {
+  uint32 spawn_id = 1;
+}
+
+// Fired when a clientTarget packet (OP_TargetMouse / target hotkey) is
+// parsed. spawn_id is the new target's id; 0 means the player cleared
+// their target. Clients decide locally whether this should drive UI
+// selection.
+message Targeted {
+  uint32 spawn_id = 1;
 }

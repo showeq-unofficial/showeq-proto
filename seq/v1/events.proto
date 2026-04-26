@@ -27,6 +27,10 @@ message Envelope {
     PrefChanged       pref_changed  = 25;
     Considered        considered    = 26;
     Targeted          targeted      = 27;
+    SpawnPointAdded   spawn_point_added    = 28;
+    SpawnPointUpdated spawn_point_updated  = 29;
+    SpawnPointRemoved spawn_point_removed  = 30;
+    SpawnPointsCleared spawn_points_cleared = 31;
   }
 }
 
@@ -107,6 +111,11 @@ message Snapshot {
   // for the daemon-internal --record-golden adapter (no client to
   // resume).
   string         session_id = 6;
+  // SpawnMonitor's currently-promoted spawn points for this zone. Empty
+  // before the first NPC pop after entering the zone — points only get
+  // promoted from the candidate pool once a second spawn arrives at the
+  // same coords.
+  repeated SpawnPoint spawn_points = 7;
 }
 
 message ZoneChanged {
@@ -369,3 +378,41 @@ message Considered {
 message Targeted {
   uint32 spawn_id = 1;
 }
+
+// One promoted spawn point as tracked by showeq-daemon's SpawnMonitor —
+// a recurring NPC pop location with a learned respawn cycle. Points are
+// promoted once the same coords see a second spawn after a death; the
+// time gap between the death and that second pop becomes diff_time_s,
+// the cycle time. Clients compute the seconds-until-next-pop locally
+// from `diff_time_s - (now - death_time_s)` so a per-second client tick
+// doesn't require any server round-trips.
+message SpawnPoint {
+  // Stable identity for this point. Mirrors legacy SpawnPoint::key
+  // (decimal x|y|z concatenated without separators) so resume + replay
+  // semantics line up with the in-memory hashmap. Treat as opaque —
+  // x/y/z are also carried below for client display.
+  string key          = 1;
+  sint32 x            = 2;
+  sint32 y            = 3;
+  sint32 z            = 4;
+  // User-assigned name (via "rename" — empty until set). Distinct from
+  // `last`, the name of the most recent spawn at this point.
+  string name         = 5;
+  string last         = 6;
+  uint32 last_id      = 7;
+  uint32 count        = 8;
+  // Wall-clock seconds since epoch. spawn_time_s is the most recent
+  // pop; death_time_s is 0 until the point's last spawn dies. Once both
+  // are non-zero, diff_time_s is the learned cycle time (the gap
+  // between death_time_s and the next spawn_time_s).
+  uint64 spawn_time_s = 9;
+  uint64 death_time_s = 10;
+  uint64 diff_time_s  = 11;
+}
+
+message SpawnPointAdded   { SpawnPoint point = 1; }
+message SpawnPointUpdated { SpawnPoint point = 1; }
+message SpawnPointRemoved { string key = 1; }
+// SpawnMonitor::clear() (zone change, explicit "clear all" from a
+// client). Empty payload — clients drop their entire spawn-point map.
+message SpawnPointsCleared {}

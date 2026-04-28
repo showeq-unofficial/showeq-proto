@@ -6,6 +6,12 @@ lint:
     - STANDARD
   except:
     - PACKAGE_VERSION_SUFFIX
+    # Topic / SpawnType enum values are referenced unprefixed across the
+    # daemon + web sources; renaming is wire-safe but high-churn.
+    - ENUM_VALUE_PREFIX
+    # `class_` / `int_` shadow reserved words in C++/TS — the trailing
+    # underscore is load-bearing, not a style slip.
+    - FIELD_LOWER_SNAKE_CASE
 breaking:
   use:
     - FILE

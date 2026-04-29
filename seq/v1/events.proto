@@ -200,10 +200,12 @@ message PlayerStats {
   uint32 hp_max      = 2;
   uint32 mana_cur    = 3;
   uint32 mana_max    = 4;
-  // Stamina here is showeq-c's LIST_STAM: `100 - m_fatigue` against a max
-  // of 100. EQ's separate "endurance" bar isn't tracked by Player.
-  uint32 stamina_cur = 5;
-  uint32 stamina_max = 6;
+  // Endurance — the run/jump bar EQ paints in yellow, fed from
+  // OP_EndUpdate (resolved 2026-04-28). Distinct from OP_Stamina,
+  // which tracks hunger/thirst on the daemon side and isn't
+  // surfaced over the wire.
+  uint32 endurance_cur = 5;
+  uint32 endurance_max = 6;
   uint32 level       = 7;
   uint32 exp_cur     = 8;
   uint32 exp_max     = 9;

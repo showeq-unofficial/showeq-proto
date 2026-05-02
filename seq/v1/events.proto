@@ -235,20 +235,28 @@ message SkillEntry {
   uint32 value    = 2;
 }
 
-// Single chat-channel message. Daemon currently only forwards player-to-
-// player channels (Guild/Group/Shout/Auction/OOC/Tell/Say/Raid); system
-// messages (loot rolls, exp ticks, NPC speech) are filtered out at the
-// daemon and will get their own message types in a later phase if wanted.
+// Single chat-channel message. Covers both player-to-player chat
+// (Guild/Group/Shout/Auction/OOC/Tell/Say/Raid via OP_ChannelMessage)
+// and server-side coloured text (NPC speech, loot rolls, exp ticks,
+// spell wear-offs, etc. via OP_FormattedMessage / OP_SimpleMessage /
+// OP_SpecialMessage).
 message ChatMessage {
   // Channel index from showeq-daemon/src/message.h's MessageType enum:
   // 0=Guild, 2=Group, 3=Shout, 4=Auction, 5=OOC, 7=Tell, 8=Say,
-  // 11=GMSay, 14=GMTell, 15=Raid.
+  // 11=GMSay, 14=GMTell, 15=Raid. Server-coloured messages collapse
+  // onto a small set of MTs (see chat_color for full fidelity).
   uint32 channel = 1;
   string from    = 2;
   // Target (recipient) name — only meaningful for tells; empty for
   // broadcast channels.
   string target  = 3;
   string text    = 4;
+  // Raw EQ ChatColor (CC_* in showeq-daemon/src/everquest.h). Carries
+  // the full client-side colour fidelity for OP_FormattedMessage /
+  // SimpleMessage / SpecialMessage. 0 (CC_Default) when the message
+  // came in via OP_ChannelMessage and there's no wire colour to relay
+  // — clients should fall back to `channel` in that case.
+  uint32 chat_color = 5;
 }
 
 message GroupMember {

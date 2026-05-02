@@ -222,6 +222,17 @@ message PlayerStats {
   uint32 wis         = 20;
   uint32 int_        = 21;
   uint32 cha         = 22;
+  // Sparse list — only skills the player has learned (legacy showeq uses
+  // value=255 as an "invalid/unlearned" sentinel; daemon filters those
+  // before sending). Names live in the web client (mirror of
+  // showeq-daemon/src/skills.h). Updated on every Player::changeSkill /
+  // addSkill so the client can diff and synthesize a "skill-up" log.
+  repeated SkillEntry skills = 23;
+}
+
+message SkillEntry {
+  uint32 skill_id = 1;
+  uint32 value    = 2;
 }
 
 // Single chat-channel message. Daemon currently only forwards player-to-

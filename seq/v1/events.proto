@@ -34,6 +34,7 @@ message Envelope {
     DevicesList       devices_list         = 32;
     ItemLearned       item_learned         = 33;
     ItemCacheTotals   item_totals          = 34;
+    WornSet           worn_set             = 35;
   }
 }
 
@@ -122,9 +123,15 @@ message Snapshot {
   // Daemon's persistent ItemCache contents — every item ever observed
   // via OP_ItemPacket. Subsequent inserts arrive as ItemLearned events.
   repeated Item       items        = 8;
-  // Aggregate totals over the cache. Re-sent as ItemCacheTotals events
-  // when the cache changes.
+  // Sum of HP/mana/AC/stats over the items currently equipped (player's
+  // worn slots, populated from the OP_ItemPacket wrapper's main_slot/
+  // sub_slot fields). Re-sent as ItemCacheTotals events on each worn
+  // change. Empty until the first equip/un-equip event after subscribe.
   ItemCacheTotals     item_totals  = 9;
+  // Slot → itemId map of the player's currently equipped gear, with the
+  // same per-slot semantics as ItemCacheTotals. Re-sent as WornSet
+  // events on each change.
+  WornSet             worn_set     = 10;
 }
 
 message ZoneChanged {
@@ -509,12 +516,13 @@ message ItemLearned {
   Item item = 1;
 }
 
-// Aggregate sums across every Item currently in the daemon's cache.
-// v1 SCOPE: this is the total over ALL items the daemon has ever
-// observed via OP_ItemPacket — worn, in inventory, in bags, in bank.
-// Worn-only totals require decoding OP_PlayerProfile worn-slot
-// itemId offsets (deferred). Treat this as "potential gear stats"
-// rather than "currently equipped".
+// Aggregate sums across the player's currently equipped gear. The
+// daemon tracks worn-slot membership from each OP_ItemPacket wrapper
+// (main_slot=0, sub_slot in [0..22]) and re-sums on every change.
+// `item_count` is the number of populated worn slots, NOT the cache
+// size — empty slots (e.g. PowerSource for characters without one) do
+// not contribute. Stats are BASE values from the item template; aug
+// contributions are not yet folded in.
 message ItemCacheTotals {
   uint32 item_count = 1;
   int32  hp         = 2;
@@ -524,4 +532,20 @@ message ItemCacheTotals {
   repeated int32 stats   = 6 [packed = true];
   repeated int32 resists = 7 [packed = true];
   int32  corruption = 8;
+}
+
+// Snapshot of the player's currently equipped gear, by worn-slot
+// index. Slot indices use the standard EQ enum (see itempacket.h):
+// 0=Charm, 1=Ear_L, 2=Head, 3=Face, 4=Ear_R, 5=Neck, 6=Shoulder,
+// 7=Arms, 8=Back, 9=Wrist_L, 10=Wrist_R, 11=Range, 12=Hands,
+// 13=Primary, 14=Secondary, 15=Finger_L, 16=Finger_R, 17=Chest,
+// 18=Legs, 19=Feet, 20=Waist, 21=PowerSrc, 22=Ammo. Unfilled slots
+// are absent. `slot_indices` and `item_ids` are parallel arrays (same
+// length, same index ordering) sorted ascending by slot — parallel-
+// arrays rather than map<> for stable wire ordering across runs.
+// Note: field name `slots` is reserved here because it collides with
+// Qt's `slots:` access-label keyword in generated C++ headers.
+message WornSet {
+  repeated int32  slot_indices = 1 [packed = true];
+  repeated uint32 item_ids     = 2 [packed = true];
 }

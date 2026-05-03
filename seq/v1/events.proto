@@ -252,11 +252,23 @@ message PlayerStats {
   // single Mac aapoints field IS the unspent count (per
   // showeq-daemon-quarm/src/everquest.h:788).
   uint32 aa_unspent  = 24;
+  // Sparse list — only the AAs the player has actually purchased
+  // (rank > 0). Auto-grants from charProfileStruct.aa_array (rank=0)
+  // are filtered server-side to keep the snapshot small. ability_id
+  // is the AA_Ability id of the highest rank purchased (matches the
+  // OP_SendAATable record id), and rank is the number of ranks owned.
+  // Live only — Quarm's wire format doesn't carry per-ability ranks.
+  repeated AAEntry purchased_aa = 25;
 }
 
 message SkillEntry {
   uint32 skill_id = 1;
   uint32 value    = 2;
+}
+
+message AAEntry {
+  uint32 ability_id = 1;
+  uint32 rank       = 2;
 }
 
 // Single chat-channel message. Covers both player-to-player chat

@@ -211,6 +211,10 @@ message PlayerStats {
   uint32 exp_max     = 9;
   uint32 aa_exp_cur  = 10;
   uint32 aa_exp_max  = 11;
+  // Total AAs spent (including glyphs on Live). 0 on Quarm: the EQMac
+  // wire format doesn't carry a spent count separately. Use aa_unspent
+  // (field 24) for "points ready to spend" — that one is populated by
+  // both daemons.
   uint32 aa_points   = 12;
   string name        = 13;
   uint32 class_      = 14;
@@ -228,6 +232,11 @@ message PlayerStats {
   // showeq-daemon/src/skills.h). Updated on every Player::changeSkill /
   // addSkill so the client can diff and synthesize a "skill-up" log.
   repeated SkillEntry skills = 23;
+  // Unspent AA points the player can allocate. Live: charProfileStruct
+  // aa_unspent at wire offset 19519 (resolved 2026-05-02). Quarm: the
+  // single Mac aapoints field IS the unspent count (per
+  // showeq-daemon-quarm/src/everquest.h:788).
+  uint32 aa_unspent  = 24;
 }
 
 message SkillEntry {

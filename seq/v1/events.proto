@@ -32,6 +32,8 @@ message Envelope {
     SpawnPointRemoved spawn_point_removed  = 30;
     SpawnPointsCleared spawn_points_cleared = 31;
     DevicesList       devices_list         = 32;
+    ItemLearned       item_learned         = 33;
+    ItemCacheTotals   item_totals          = 34;
   }
 }
 
@@ -117,6 +119,12 @@ message Snapshot {
   // promoted from the candidate pool once a second spawn arrives at the
   // same coords.
   repeated SpawnPoint spawn_points = 7;
+  // Daemon's persistent ItemCache contents — every item ever observed
+  // via OP_ItemPacket. Subsequent inserts arrive as ItemLearned events.
+  repeated Item       items        = 8;
+  // Aggregate totals over the cache. Re-sent as ItemCacheTotals events
+  // when the cache changes.
+  ItemCacheTotals     item_totals  = 9;
 }
 
 message ZoneChanged {
@@ -462,4 +470,58 @@ message NetworkDevice {
 // session — not broadcast — since it's session-scoped UI data.
 message DevicesList {
   repeated NetworkDevice devices = 1;
+}
+
+// One item template the daemon has parsed from an OP_ItemPacket and
+// cached. Mirrors src/itempacket.h ItemTemplate. Wire format gives
+// BASE values; equipped augments contribute via separate Item entries
+// (each aug is itself an item served via OP_ItemPacket).
+message Item {
+  uint32 id        = 1;
+  string name      = 2;
+  // Omitted when identical to `name`. Lore-locked items typically carry
+  // the lore version separately in the EQ wire format.
+  string lore_name = 3;
+  // EQ slot bitmask: 0x6000=Pri|Sec, 0x18000=Ring1|Ring2, 0x20=Neck,
+  // 0x20000=Chest, etc. See parsedItemTemplateStruct for the full set
+  // observed on the wire.
+  uint32 slot_mask = 4;
+  // Flags blob (size enum at byte[19] + bit-packed flags). Not yet
+  // fully decoded; passed through for clients that want to inspect.
+  uint32 flags     = 5;
+  float  weight    = 6;
+  int32  hp        = 7;
+  int32  mana      = 8;
+  int32  endurance = 9;
+  int32  ac        = 10;
+  // [STR, STA, AGI, DEX, CHA, INT, WIS] — 7 entries, matches
+  // src/itempacket.h ItemStatIndex.
+  repeated int32 stats   = 11 [packed = true];
+  // [CR, DR, PR, MR, FR] — 5 entries, matches ItemResistIndex.
+  repeated int32 resists = 12 [packed = true];
+  int32 corruption = 13;
+}
+
+// Fired when ItemCache::insert() succeeds — either a brand-new item
+// or an updated one (we re-emit on overwrite so clients see fresh
+// stats if a future OP_ItemPacket revises an existing entry).
+message ItemLearned {
+  Item item = 1;
+}
+
+// Aggregate sums across every Item currently in the daemon's cache.
+// v1 SCOPE: this is the total over ALL items the daemon has ever
+// observed via OP_ItemPacket — worn, in inventory, in bags, in bank.
+// Worn-only totals require decoding OP_PlayerProfile worn-slot
+// itemId offsets (deferred). Treat this as "potential gear stats"
+// rather than "currently equipped".
+message ItemCacheTotals {
+  uint32 item_count = 1;
+  int32  hp         = 2;
+  int32  mana       = 3;
+  int32  endurance  = 4;
+  int32  ac         = 5;
+  repeated int32 stats   = 6 [packed = true];
+  repeated int32 resists = 7 [packed = true];
+  int32  corruption = 8;
 }

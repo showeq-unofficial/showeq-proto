@@ -98,15 +98,31 @@ message SetPref {
 // the same connection only — not broadcast. Empty payload.
 message ListDevices {}
 
+// Client -> server: assign a user-curated label to a spawn point.
+// Mirrors showeq-c's right-click "Rename Spawn Point..." menu item
+// (spawnpointlist.cpp:296). `key` is the SpawnPoint::key form already
+// echoed in SpawnPoint.key (decimal x|y|z concatenated). Empty `name`
+// clears the label. The daemon calls SpawnMonitor::setName which
+// updates the in-memory point, persists the zone's <zone>.sp file
+// (write-through — legacy showeq saved on zone change only, but we
+// want a single rename to survive a daemon crash), and broadcasts a
+// SpawnPointUpdated envelope to every connected client. Unknown keys
+// are silently dropped — no error envelope yet.
+message RenameSpawnPoint {
+  string key  = 1;
+  string name = 2;
+}
+
 message ClientEnvelope {
   oneof payload {
-    Subscribe        subscribe          = 1;
-    AddFilterRule    add_filter_rule    = 2;
-    RemoveFilterRule remove_filter_rule = 3;
-    SetPref          set_pref           = 4;
-    ReloadFilters    reload_filters     = 5;
-    EditFilterRule   edit_filter_rule   = 6;
-    SaveFilters      save_filters       = 7;
-    ListDevices      list_devices       = 8;
+    Subscribe        subscribe           = 1;
+    AddFilterRule    add_filter_rule     = 2;
+    RemoveFilterRule remove_filter_rule  = 3;
+    SetPref          set_pref            = 4;
+    ReloadFilters    reload_filters      = 5;
+    EditFilterRule   edit_filter_rule    = 6;
+    SaveFilters      save_filters        = 7;
+    ListDevices      list_devices        = 8;
+    RenameSpawnPoint rename_spawn_point  = 9;
   }
 }

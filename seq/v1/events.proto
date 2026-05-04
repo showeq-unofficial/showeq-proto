@@ -38,9 +38,17 @@ message Envelope {
   }
 }
 
-// EverQuest ships positions as int16 with a 3-bit fractional shift (see
-// showeq-c/src/fixpt.h). We pass the raw fixed-point values through —
-// clients that want world units do the shift.
+// Positions are in EQ's fixed-point format (int16 with a 3-bit
+// fractional shift; see showeq-c/src/fixpt.h) and clients shift to
+// world units themselves. X and Y are pre-negated by the daemon into
+// **screen convention** (+X right = East, +Y down = South). EQ's
+// runtime convention is the inverse (+X = West, +Y = North); the
+// daemon owns the flip so every consumer renders coords directly with
+// no client-side negation. Z (height) is the same in both conventions
+// and ships raw. Velocity (vx, vy) is in the same coord system as
+// position and gets the same negation. Applies uniformly to every
+// position field on the wire — Pos.x/y/vx/vy, MapLine.x/y[],
+// MapLocation.x/y, MapGeometry.min_x/min_y/max_x/max_y, SpawnPoint.x/y.
 message Pos {
   sint32 x = 1;
   sint32 y = 2;

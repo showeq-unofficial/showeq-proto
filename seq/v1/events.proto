@@ -35,6 +35,8 @@ message Envelope {
     ItemLearned       item_learned         = 33;
     ItemCacheTotals   item_totals          = 34;
     WornSet           worn_set             = 35;
+    EqTimeSync        eq_time_sync         = 36;
+    ZoneServer        zone_server          = 37;
   }
 }
 
@@ -140,6 +142,15 @@ message Snapshot {
   // same per-slot semantics as ItemCacheTotals. Re-sent as WornSet
   // events on each change.
   WornSet             worn_set     = 10;
+  // Most recent Norrath-time sync from OP_TimeOfDay. Empty until the
+  // daemon has observed at least one OP_TimeOfDay packet (typically
+  // arrives on zone-in). Clients extrapolate forward locally — see
+  // EqTimeSync for the cadence/scaling note.
+  EqTimeSync          eq_time_sync = 11;
+  // Last OP_ZoneServerInfo seen — host + port of the EQ zone server the
+  // sniffed client is currently connected to. Empty before the first
+  // world->zone handoff observed since daemon start.
+  ZoneServer          zone_server  = 12;
 }
 
 message ZoneChanged {
@@ -568,4 +579,31 @@ message ItemCacheTotals {
 message WornSet {
   repeated int32  slot_indices = 1 [packed = true];
   repeated uint32 item_ids     = 2 [packed = true];
+}
+
+// Norrath in-game date/time, captured at the moment the daemon parsed
+// the most recent OP_TimeOfDay packet. Sent as a sync point only — the
+// daemon does NOT tick the clock for connected clients; clients
+// extrapolate locally using the envelope's `server_ts_ms` and the
+// 1 IRL second = 20 EQ seconds scaling. Resent on each new
+// OP_TimeOfDay (typically once per zone-in), so a long-running session
+// converges back to the wire truth on every zone change.
+//
+// Day is 1..28 (EQ months are 28-day flat). Hour is 0..23. The EQ wire
+// representation is 1-based hour; the daemon normalizes to 0-based to
+// match QDateTime conventions.
+message EqTimeSync {
+  uint32 year   = 1;
+  uint32 month  = 2;   // 1..12
+  uint32 day    = 3;   // 1..28
+  uint32 hour   = 4;   // 0..23
+  uint32 minute = 5;   // 0..59
+}
+
+// EQ zone server endpoint the sniffed client is currently connected to,
+// as reported by the most recent OP_ZoneServerInfo packet on the world
+// stream. Resent on each world→zone handoff (i.e. each /zone change).
+message ZoneServer {
+  string host = 1;   // FQDN or IP, e.g. "eqzone-80.everquest.com"
+  uint32 port = 2;   // udp port the zone session is on
 }

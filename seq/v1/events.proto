@@ -37,6 +37,7 @@ message Envelope {
     WornSet           worn_set             = 35;
     EqTimeSync        eq_time_sync         = 36;
     ZoneServer        zone_server          = 37;
+    BoxListUpdated    box_list_updated     = 38;
   }
 }
 
@@ -508,6 +509,31 @@ message NetworkDevice {
 // session — not broadcast — since it's session-scoped UI data.
 message DevicesList {
   repeated NetworkDevice devices = 1;
+}
+
+// One Box (EQ client session) in the daemon's BoxRegistry. Identity
+// is two-layer: a stable hash of the character name (`box_id`,
+// "b-<8hex>") plus the human-readable label (`display_name`). Goldens
+// and pbstream dumps only carry `box_id`; redaction zeros
+// `display_name` without breaking continuity. Boxes with the same
+// character name (re-handshakes after zone change) are merged in the
+// registry — only the original entry appears in BoxListUpdated.
+message BoxMeta {
+  string box_id       = 1;
+  string display_name = 2;
+  string client_ip    = 3;
+  uint32 packet_count = 4;
+}
+
+// Multibox: registry update. Broadcast to every connected client
+// whenever a Box is added, promoted (display_name fills in), merged
+// into another (hidden from boxes[]), or the active_box_id changes.
+// Clients render a picker from boxes[] and highlight active_box_id.
+// In v1 (Stage 4 of docs/MULTIBOX_PLAN.md) active_box_id is cosmetic
+// — Stage 3 hooks it up to per-box state-manager decode.
+message BoxListUpdated {
+  repeated BoxMeta boxes         = 1;
+  string           active_box_id = 2;
 }
 
 // One item template the daemon has parsed from an OP_ItemPacket and

@@ -113,6 +113,17 @@ message RenameSpawnPoint {
   string name = 2;
 }
 
+// Client -> server: switch the daemon's active decode target to
+// `box_id` (as seen in BoxListUpdated.boxes[].box_id). v1 of the
+// multibox feature (Stage 4 of docs/MULTIBOX_PLAN.md) treats active
+// as cosmetic — the daemon records the choice and re-emits
+// BoxListUpdated with the new active_box_id, but state-manager decode
+// switching lands in Stage 3. Unknown box_id values are silently
+// dropped — no error envelope yet.
+message SetActiveBox {
+  string box_id = 1;
+}
+
 message ClientEnvelope {
   oneof payload {
     Subscribe        subscribe           = 1;
@@ -124,5 +135,6 @@ message ClientEnvelope {
     SaveFilters      save_filters        = 7;
     ListDevices      list_devices        = 8;
     RenameSpawnPoint rename_spawn_point  = 9;
+    SetActiveBox     set_active_box      = 10;
   }
 }

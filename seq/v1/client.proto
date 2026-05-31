@@ -124,6 +124,22 @@ message SetActiveBox {
   string box_id = 1;
 }
 
+// Client -> server request to enumerate available map provider packages
+// (the subdirectories under the daemon's maps root, plus the synthetic
+// "default" = the flat root). The daemon replies with a MapPackagesUpdate
+// envelope on the same connection only — not broadcast. Empty payload.
+message ListMapPackages {}
+
+// Client -> server: switch the active map provider package to `id` (as seen
+// in MapPackagesUpdate.packages[].id; "default" = the flat maps root). The
+// daemon records + persists the choice, re-resolves the current zone's map,
+// broadcasts MapPackagesUpdate, and emits a fresh ZoneChanged with the new
+// geometry. Unknown ids fall back to "default". Active package is global
+// (shared by all connected clients) in v1.
+message SetMapPackage {
+  string id = 1;
+}
+
 message ClientEnvelope {
   oneof payload {
     Subscribe        subscribe           = 1;
@@ -136,5 +152,7 @@ message ClientEnvelope {
     ListDevices      list_devices        = 8;
     RenameSpawnPoint rename_spawn_point  = 9;
     SetActiveBox     set_active_box      = 10;
+    ListMapPackages  list_map_packages   = 11;
+    SetMapPackage    set_map_package     = 12;
   }
 }

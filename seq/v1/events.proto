@@ -38,6 +38,7 @@ message Envelope {
     EqTimeSync        eq_time_sync         = 36;
     ZoneServer        zone_server          = 37;
     BoxListUpdated    box_list_updated     = 38;
+    MapPackagesUpdate map_packages         = 39;
   }
 }
 
@@ -195,6 +196,27 @@ message MapLocation {
   sint32 z       = 5;
   bool   z_valid = 6;
   uint32 layer   = 7;
+}
+
+// A selectable map provider package — a named subdirectory under the
+// daemon's maps root holding a per-zone set of map files (e.g. "brewall",
+// "good"). The flat maps root itself is exposed as the synthetic "default"
+// package. zone_count is the number of base zone maps the package provides
+// (display only).
+message MapPackage {
+  string id         = 1;
+  string label      = 2;
+  uint32 zone_count = 3;
+}
+
+// Broadcast of the available map packages and which one is active. Sent on
+// subscribe and whenever the active package changes (in response to
+// SetMapPackage). Selecting a package re-resolves the current zone and
+// triggers a fresh ZoneChanged with the new geometry. Active package is
+// global (shared by all connected clients) in v1.
+message MapPackagesUpdate {
+  repeated MapPackage packages  = 1;
+  string              active_id = 2;
 }
 
 message MapGeometry {

@@ -550,6 +550,8 @@ message BoxMeta {
   string display_name = 2;
   string client_ip    = 3;
   uint32 packet_count = 4;
+  string zone         = 5;  // short zone name of the box's current zone ("" if unknown)
+  uint32 level        = 6;  // player level (0 until OP_PlayerProfile decodes)
 }
 
 // Multibox: registry update. Broadcast to every connected client

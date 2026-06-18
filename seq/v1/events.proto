@@ -39,6 +39,7 @@ message Envelope {
     ZoneServer        zone_server          = 37;
     BoxListUpdated    box_list_updated     = 38;
     MapPackagesUpdate map_packages         = 39;
+    InspectAnswer     inspect_answer       = 40;
   }
 }
 
@@ -112,16 +113,15 @@ message Spawn {
   // attackable. Sourced from OP_SpawnAppearance2 type=0x2c (value 1=locked,
   // 0=attackable). Always false on standard Live servers (no lock ruleset).
   bool locked = 19;
-  // Item ID held in the primary (main hand) slot. 0 = nothing. Sourced from
-  // spawnStruct.equipment[tPrimary].itemId via fillSpawnStruct.
-  uint32 primary_item_id = 20;
-  // Item ID held in the secondary (off hand) slot. 0 = nothing.
-  uint32 secondary_item_id = 21;
-  // Item name for primary_item_id, looked up from the daemon's ItemCache.
-  // Empty when the item has not been observed via OP_ItemPacket this session.
-  string primary_item_name = 22;
-  // Item name for secondary_item_id. Empty when not in ItemCache.
-  string secondary_item_name = 23;
+  // Visual equipment model codes for all 9 worn slots, in slot order:
+  //   0=Head 1=Chest 2=Arms 3=Waist 4=Gloves 5=Legs 6=Feet
+  //   7=Primary(weapon) 8=Secondary(weapon/shield)
+  // Armor slots 0-6 use material codes; weapon slots 7-8 use weapon model
+  // codes. See showeq-web/src/lib/equipModels.ts for name lookup tables.
+  // 0 = empty slot. Populated for all humanoid races and common NPC races;
+  // non-humanoid NPCs populate only slots 7-8.
+  repeated uint32 equip_models = 20;
+  reserved 21, 22, 23;
 }
 
 message Snapshot {
@@ -261,6 +261,15 @@ message SpawnRemoved {
 message SpawnKilled {
   uint32 deceased_id = 1;
   uint32 killer_id = 2;
+}
+
+// Full equipment inspect of a spawn, fired when OP_InspectAnswer (0x57f1)
+// arrives. Contains actual EQ item names for all 23 worn slots plus the
+// biography text the inspected player has set.
+message InspectAnswer {
+  uint32          spawn_id   = 1;
+  repeated string item_names = 2;  // 23 entries in EQ worn-slot order; empty string = empty slot
+  string          bio        = 3;
 }
 
 // Snapshot of the user's character state. Sent once after Subscribe and

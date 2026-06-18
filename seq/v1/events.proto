@@ -452,9 +452,16 @@ message FilterRulesUpdate {
   repeated FilterRule rules = 1;
 }
 
-// Placeholder messages for later phases. Left intentionally thin so field
-// numbers can be assigned meaningfully once the widgets are designed.
-message ExperienceTick { reserved 1 to 15; }
+// One experience gain event. Fired for each kill that awards XP — the daemon
+// emits it from Player::expGained which carries the killed spawn's name, level,
+// XP delta (0-100000 per-level scale; 1000 = 0.1% of a level), and zone long
+// name. Modern Live sends the actual XP percentage directly; no ZEM calculation.
+message ExperienceTick {
+  string mob_name  = 1;
+  uint32 mob_level = 2;
+  uint32 xp_gained = 3;
+  string zone_name = 4;
+}
 
 // One global preference. Daemon-side storage stays XML (XMLPreferences,
 // inherited from showeq-c) but only an allowlisted subset is published

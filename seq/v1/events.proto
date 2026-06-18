@@ -112,6 +112,16 @@ message Spawn {
   // attackable. Sourced from OP_SpawnAppearance2 type=0x2c (value 1=locked,
   // 0=attackable). Always false on standard Live servers (no lock ruleset).
   bool locked = 19;
+  // Item ID held in the primary (main hand) slot. 0 = nothing. Sourced from
+  // spawnStruct.equipment[tPrimary].itemId via fillSpawnStruct.
+  uint32 primary_item_id = 20;
+  // Item ID held in the secondary (off hand) slot. 0 = nothing.
+  uint32 secondary_item_id = 21;
+  // Item name for primary_item_id, looked up from the daemon's ItemCache.
+  // Empty when the item has not been observed via OP_ItemPacket this session.
+  string primary_item_name = 22;
+  // Item name for secondary_item_id. Empty when not in ItemCache.
+  string secondary_item_name = 23;
 }
 
 message Snapshot {

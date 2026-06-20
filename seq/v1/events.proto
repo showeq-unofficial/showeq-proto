@@ -389,6 +389,7 @@ message Buff {
   string caster_name = 5;
   uint32 target_id   = 6;
   string target_name = 7;
+  bool   is_song     = 8;
 }
 
 message BuffsUpdate {

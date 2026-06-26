@@ -236,6 +236,11 @@ message MapGeometry {
   sint32               max_y     = 4;
   repeated MapLine     lines     = 5;
   repeated MapLocation locations = 6;
+  // Suggested height-filter window parsed from Brewall map annotations
+  // (Height_Filter:_above/below in layer-2 P-lines). 0 = no hint; both
+  // fields are 0 when the map has no annotation.
+  uint32               height_hint_above = 7;
+  uint32               height_hint_below = 8;
 }
 
 message SpawnAdded {

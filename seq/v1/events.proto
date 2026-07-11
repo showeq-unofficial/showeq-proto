@@ -40,6 +40,7 @@ message Envelope {
     BoxListUpdated    box_list_updated     = 38;
     MapPackagesUpdate map_packages         = 39;
     InspectAnswer     inspect_answer       = 40;
+    SpawnEffectsUpdate spawn_effects       = 41;
   }
 }
 
@@ -407,6 +408,15 @@ message BuffsUpdate {
   // any drift between server and client wall clocks.
   uint64 captured_ms = 1;
   repeated Buff buffs = 2;
+}
+
+// Spell effects (DoTs / debuffs / snares) the PLAYER has cast ON mobs,
+// attributed to the target spawn. Same shape as BuffsUpdate — each Buff's
+// target_id is the mob it's on (caster_id is the player). Resent in full on
+// every add/del/change, and pruned when the mob dies/despawns or on zone.
+message SpawnEffectsUpdate {
+  uint64 captured_ms = 1;
+  repeated Buff effects = 2;
 }
 
 // Single combat event. Daemon emits one per parsed OP_Action2 on the

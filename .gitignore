@@ -7,3 +7,6 @@ node_modules/
 *_pb.ts
 *_pb.js
 target/
+
+# Claude Code local session state (cozempic hooks, worktrees)
+.claude/

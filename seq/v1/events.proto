@@ -395,6 +395,10 @@ message Buff {
   uint32 target_id   = 6;
   string target_name = 7;
   bool   is_song     = 8;
+  // True for beneficial spells (buffs/heals), false for detrimental ones
+  // (debuffs/DoTs a mob landed on you). Sourced from the spell DB's "good
+  // effect" flag. Clients suppress buff-fade alerts for non-beneficial buffs.
+  bool   beneficial  = 9;
 }
 
 message BuffsUpdate {

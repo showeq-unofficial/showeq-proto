@@ -365,6 +365,14 @@ message ChatMessage {
   // came in via OP_ChannelMessage and there's no wire colour to relay
   // — clients should fall back to `channel` in that case.
   uint32 chat_color = 5;
+  // Literal channel NAME for named cross-zone channels that don't map to
+  // a fixed MessageType — the modern-EQ UCS channels (auto-joined
+  // General*, custom /join'd channels, e.g. "General2", "NewPlayers").
+  // Empty for the typed channels enumerated in `channel`; clients render
+  // "#<channel_name>: ..." when set, else fall back to `channel`. Not
+  // backend-specific: EQL populates it today via the UCS decoder, Live
+  // would populate it identically from its own UCS session.
+  string channel_name = 6;
 }
 
 message GroupMember {

@@ -331,6 +331,8 @@ message PlayerStats {
   // OP_SendAATable record id), and rank is the number of ranks owned.
   // Live only — Quarm's wire format doesn't carry per-ability ranks.
   repeated AAEntry purchased_aa = 25;
+  // Total money in copper (eql OP_MoneyUpdate). Web splits into plat/gold/silver/copper.
+  uint32 money_copper = 26;
 }
 
 message SkillEntry {

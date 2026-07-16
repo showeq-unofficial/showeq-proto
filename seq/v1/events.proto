@@ -41,6 +41,7 @@ message Envelope {
     MapPackagesUpdate map_packages         = 39;
     InspectAnswer     inspect_answer       = 40;
     SpawnEffectsUpdate spawn_effects       = 41;
+    LootDrops         loot_drops           = 42;
   }
 }
 
@@ -276,6 +277,13 @@ message InspectAnswer {
   uint32          spawn_id   = 1;
   repeated string item_names = 2;  // 23 entries in EQ worn-slot order; empty string = empty slot
   string          bio        = 3;
+}
+
+// eql corpse loot window (OP_LootDrops).
+message LootDrops {
+  uint32          corpse_id   = 1;
+  string          corpse_name = 2;
+  repeated string item_names  = 3;  // one per lootable slot
 }
 
 // Snapshot of the user's character state. Sent once after Subscribe and

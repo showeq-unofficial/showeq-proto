@@ -42,6 +42,7 @@ message Envelope {
     InspectAnswer     inspect_answer       = 40;
     SpawnEffectsUpdate spawn_effects       = 41;
     LootDrops         loot_drops           = 42;
+    SpawnCast         spawn_cast           = 43;
   }
 }
 
@@ -453,6 +454,18 @@ message BuffsUpdate {
 message SpawnEffectsUpdate {
   uint64 captured_ms = 1;
   repeated Buff effects = 2;
+}
+
+// eql OP_BeginCast (0x6cbd): a spawn started casting a spell. Transient — the
+// web client shows a "casting <spell>" indicator on the caster's target window
+// for cast_time_ms, then clears it. caster_id/spell_id are resolved to names
+// daemon-side. cast_time_ms == 0 is an instant/aborted cast.
+message SpawnCast {
+  uint32 caster_id    = 1;
+  string caster_name  = 2;
+  uint32 spell_id     = 3;
+  string spell_name   = 4;
+  uint32 cast_time_ms = 5;
 }
 
 // Single combat event. Daemon emits one per parsed OP_Action2 on the

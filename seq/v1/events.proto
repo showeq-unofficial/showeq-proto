@@ -423,6 +423,7 @@ message Buff {
   // (debuffs/DoTs a mob landed on you). Sourced from the spell DB's "good
   // effect" flag. Clients suppress buff-fade alerts for non-beneficial buffs.
   bool   beneficial  = 9;
+  uint32 icon        = 10;  // spell-icon id (spells atlas)
 }
 
 message BuffsUpdate {

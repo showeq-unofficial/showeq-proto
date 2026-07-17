@@ -360,6 +360,11 @@ message SkillEntry {
 message AAEntry {
   uint32 ability_id = 1;
   uint32 rank       = 2;
+  // Human-readable AA title. ability_id is a per-rank descID; its name
+  // lives in dbstr_us.txt type-1 keyed by titleSID, and the descID->titleSID
+  // map is only carried by OP_SendAATable. Empty until the daemon decodes
+  // that table; clients fall back to "#<ability_id>".
+  string name       = 3;
 }
 
 // Single chat-channel message. Covers both player-to-player chat

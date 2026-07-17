@@ -357,6 +357,12 @@ message PlayerStats {
   // EQL multiclass bitmask (bit N = class N); class_ above is only the primary.
   // 0 on live/single-class. Web decodes to e.g. "SHD/DRU/MNK".
   uint32 class_mask = 29;
+  // EQL active STANCE name ("Defense"), empty if none/unknown. One stance is
+  // active at a time; the server echoes OP_Stance (0x0fab) on each swap.
+  string stance     = 30;
+  // EQL active INVOCATION name ("Recover"), empty if none/unknown. One
+  // invocation is active at a time; echoed via OP_Invocation (0x3b12) on swap.
+  string invocation = 31;
 }
 
 message SkillEntry {

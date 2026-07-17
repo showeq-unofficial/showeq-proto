@@ -124,6 +124,9 @@ message Spawn {
   // 0 = empty slot. Populated for all humanoid races and common NPC races;
   // non-humanoid NPCs populate only slots 7-8.
   repeated uint32 equip_models = 20;
+  // EQL multiclass bitmask; bit N = class N; 0 on Live. class_ above is only
+  // the primary. Web decodes to e.g. "SHD/DRU/MNK".
+  uint32 class_mask = 24;
   reserved 21, 22, 23;
 }
 

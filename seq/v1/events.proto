@@ -346,6 +346,10 @@ message PlayerStats {
   repeated AAEntry purchased_aa = 25;
   // Total money in copper (eql OP_MoneyUpdate). Web splits into plat/gold/silver/copper.
   uint32 money_copper = 26;
+  // Hunger/thirst from OP_Stamina: "ticks till next eat/drink", counting down
+  // from a full meal (~6000) to 0 = hungry/thirsty. Same on live + eql.
+  uint32 food  = 27;
+  uint32 water = 28;
 }
 
 message SkillEntry {

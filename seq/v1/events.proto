@@ -350,6 +350,9 @@ message PlayerStats {
   // from a full meal (~6000) to 0 = hungry/thirsty. Same on live + eql.
   uint32 food  = 27;
   uint32 water = 28;
+  // EQL multiclass bitmask (bit N = class N); class_ above is only the primary.
+  // 0 on live/single-class. Web decodes to e.g. "SHD/DRU/MNK".
+  uint32 class_mask = 29;
 }
 
 message SkillEntry {

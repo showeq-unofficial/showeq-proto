@@ -279,11 +279,16 @@ message InspectAnswer {
   string          bio        = 3;
 }
 
+message LootItem {
+  string name = 1;
+  uint32 icon = 2;  // EQ item-icon id (dragitem atlas)
+}
+
 // eql corpse loot window (OP_LootDrops).
 message LootDrops {
-  uint32          corpse_id   = 1;
-  string          corpse_name = 2;
-  repeated string item_names  = 3;  // one per lootable slot
+  uint32           corpse_id   = 1;
+  string           corpse_name = 2;
+  repeated LootItem items      = 3;  // one per lootable slot
 }
 
 // Snapshot of the user's character state. Sent once after Subscribe and

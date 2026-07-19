@@ -410,6 +410,12 @@ message ChatMessage {
   // backend-specific: EQL populates it today via the UCS decoder, Live
   // would populate it identically from its own UCS session.
   string channel_name = 6;
+  // Coin proceeds carried by this line, in copper, when the message reports a
+  // sale (servers that auto-sell looted items state the amount in the message
+  // text and send no separate coin opcode). 0 when the line reports no coin.
+  // The daemon parses the amount so clients never have to match server-specific
+  // wording; it is also applied to the player's running total.
+  uint32 coin_copper = 7;
 }
 
 message GroupMember {

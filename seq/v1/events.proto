@@ -175,6 +175,10 @@ message Snapshot {
   // sniffed client is currently connected to. Empty before the first
   // world->zone handoff observed since daemon start.
   ZoneServer          zone_server  = 12;
+  // The daemon's data namespace (SEQ_DATA_NAMESPACE): ".showeq" for Live,
+  // ".showeq/eql" for EQL. Clients write per-backend data (e.g. the loot DB)
+  // under ~/<data_namespace>/ so EQL and Live don't share files.
+  string              data_namespace = 13;
 }
 
 message ZoneChanged {

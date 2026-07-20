@@ -287,6 +287,8 @@ message InspectAnswer {
 message LootItem {
   string name = 1;
   uint32 icon = 2;  // EQ item-icon id (dragitem atlas)
+  // EQ database item id, parsed from the leading 6 hex of the item-link header.
+  uint32 item_id = 3;
 }
 
 // eql corpse loot window (OP_LootDrops).

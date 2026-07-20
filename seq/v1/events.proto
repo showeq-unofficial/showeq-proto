@@ -43,6 +43,7 @@ message Envelope {
     SpawnEffectsUpdate spawn_effects       = 41;
     LootDrops         loot_drops           = 42;
     SpawnCast         spawn_cast           = 43;
+    LootTransaction   loot_transaction     = 44;
   }
 }
 
@@ -385,6 +386,17 @@ message AAEntry {
 // and server-side coloured text (NPC speech, loot rolls, exp ticks,
 // spell wear-offs, etc. via OP_FormattedMessage / OP_SimpleMessage /
 // OP_SpecialMessage).
+// One completed corpse-loot action. Emitted per server confirmation, so a
+// client can total session earnings without matching message wording.
+message LootTransaction {
+  uint32 corpse_id   = 1;
+  uint32 item_id     = 2;
+  uint32 quantity    = 3;
+  // Sale proceeds in copper for servers that auto-sell looted items; 0 when
+  // the loot produced no coin. Also applied to the player's running total.
+  uint32 coin_copper = 4;
+}
+
 message ChatMessage {
   // Channel index from showeq-daemon/src/message.h's MessageType enum:
   // 0=Guild, 2=Group, 3=Shout, 4=Auction, 5=OOC, 7=Tell, 8=Say,
@@ -410,12 +422,10 @@ message ChatMessage {
   // backend-specific: EQL populates it today via the UCS decoder, Live
   // would populate it identically from its own UCS session.
   string channel_name = 6;
-  // Coin proceeds carried by this line, in copper, when the message reports a
-  // sale (servers that auto-sell looted items state the amount in the message
-  // text and send no separate coin opcode). 0 when the line reports no coin.
-  // The daemon parses the amount so clients never have to match server-specific
-  // wording; it is also applied to the player's running total.
-  uint32 coin_copper = 7;
+  // DEPRECATED, no longer populated. Sale proceeds were briefly parsed out of
+  // this message's English text; the amount turned out to be on the wire as a
+  // binary field, so it now rides LootTransaction.coin_copper instead.
+  uint32 coin_copper = 7 [deprecated = true];
 }
 
 message GroupMember {

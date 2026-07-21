@@ -44,7 +44,43 @@ message Envelope {
     LootDrops         loot_drops           = 42;
     SpawnCast         spawn_cast           = 43;
     LootTransaction   loot_transaction     = 44;
+    GuildRoster       guild_roster         = 45;
   }
+}
+
+// One row of the guild roster.
+message GuildRosterMember {
+  string name = 1;
+  uint32 level = 2;
+  // Primary class. On backends with a multiclass system this is the lowest set
+  // bit of class_mask, which is all a single-class display can show.
+  uint32 class_ = 3;
+  // EQL multiclass bitmask (bit N = class N); 0 where the server has no
+  // multiclass concept. A character has three simultaneous classes there, so
+  // several bits are set and class_ alone under-describes them.
+  uint32 class_mask = 4;
+  // 0 = member, 1 = officer, 2 = leader.
+  uint32 rank = 5;
+  // Unix seconds; 0 = never seen. Meaningful even while online (the roster is
+  // only re-sent on request, so this can be stale by design).
+  uint32 last_on = 6;
+  bool banker = 7;
+  bool alt = 8;
+  // false = prospective member, true = full member.
+  bool full_member = 9;
+  string public_note = 10;
+  // Zone the member is in; 0 = offline. Only the roster carries a trustworthy
+  // value — the member-update opcode's zone tail is uninitialized server
+  // memory, so it is deliberately not decoded.
+  uint32 zone_id = 11;
+}
+
+// The player's guild roster, replaced wholesale (the server sends the full list
+// rather than deltas). Empty members = the roster has not arrived yet.
+// Resolve guild_id to a name via any Spawn's guild_id/guild_tag pair.
+message GuildRoster {
+  uint32 guild_id = 1;
+  repeated GuildRosterMember members = 2;
 }
 
 // Positions are in EQ's fixed-point format (int16 with a 3-bit

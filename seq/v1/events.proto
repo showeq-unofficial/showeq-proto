@@ -128,6 +128,11 @@ message Spawn {
   // EQL multiclass bitmask; bit N = class N; 0 on Live. class_ above is only
   // the primary. Web decodes to e.g. "SHD/DRU/MNK".
   uint32 class_mask = 24;
+  // Guild name resolved from (guild_id, guild_server_id) via the zone's guild
+  // roster (OP_GuildsInZoneList / OP_NewGuildInZone). Empty when the spawn is
+  // unguilded, or when its guild has not been named on the wire yet — the
+  // daemon re-sends the spawn once the name arrives.
+  string guild_tag = 25;
   reserved 21, 22, 23;
 }
 

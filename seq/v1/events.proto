@@ -45,7 +45,19 @@ message Envelope {
     SpawnCast         spawn_cast           = 43;
     LootTransaction   loot_transaction     = 44;
     GuildRoster       guild_roster         = 45;
+    GuildMotd         guild_motd           = 46;
   }
+}
+
+// The player's guild message of the day. Sent once per zone-in; message and
+// sender are both empty when the guild has none set. The wire carries no guild
+// id — the MOTD is implicitly the player's own guild — so guild_id is filled in
+// from the roster the daemon tracks, and is 0 if no roster has arrived yet.
+message GuildMotd {
+  uint32 guild_id = 1;
+  string message = 2;
+  // Who last set it; empty when never set.
+  string sender = 3;
 }
 
 // One row of the guild roster.

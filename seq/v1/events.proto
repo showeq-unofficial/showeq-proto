@@ -46,6 +46,7 @@ message Envelope {
     LootTransaction   loot_transaction     = 44;
     GuildRoster       guild_roster         = 45;
     GuildMotd         guild_motd           = 46;
+    GuildRankNames    guild_rank_names     = 47;
   }
 }
 
@@ -93,6 +94,19 @@ message GuildRosterMember {
 message GuildRoster {
   uint32 guild_id = 1;
   repeated GuildRosterMember members = 2;
+}
+
+// The guild's rank-name table, from OP_ExpandedGuildInfo. Guilds rename their
+// ranks freely (e.g. "Leader" / "Senior Officer" / "Recruit"), so a member's
+// numeric GuildRosterMember.rank only means something against this table.
+// rank_ids[i] names[i] are parallel arrays (rank ordinals are 1-based and
+// sparse — not a proto map, per the WornSet convention). rank_ids[i] matches
+// GuildRosterMember.rank. Sent whenever the table grows and in the initial
+// snapshot; each send is the full known table, so the latest wins.
+message GuildRankNames {
+  uint32 guild_id = 1;
+  repeated uint32 rank_ids = 2;
+  repeated string names = 3;
 }
 
 // Positions are in EQ's fixed-point format (int16 with a 3-bit

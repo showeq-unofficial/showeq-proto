@@ -465,9 +465,13 @@ message LootTransaction {
   uint32 corpse_id   = 1;
   uint32 item_id     = 2;
   uint32 quantity    = 3;
-  // Sale proceeds in copper for servers that auto-sell looted items; 0 when
-  // the loot produced no coin. Also applied to the player's running total.
+  // Sale proceeds on an item event (0 if unsold), or the corpse's coin pile
+  // when coin_from_corpse. Applied to the player's running total either way.
   uint32 coin_copper = 4;
+  // Coin pile rather than an item: corpse_id/item_id/quantity are 0. Always
+  // acquired (EQL auto-takes it), so clients accrue on receipt — but must skip
+  // these when pairing an item name from loot chat with its sale amount.
+  bool coin_from_corpse = 5;
 }
 
 message ChatMessage {

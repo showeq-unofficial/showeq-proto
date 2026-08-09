@@ -47,6 +47,7 @@ message Envelope {
     GuildRoster       guild_roster         = 45;
     GuildMotd         guild_motd           = 46;
     GuildRankNames    guild_rank_names     = 47;
+    LootPage          loot_page            = 48;
   }
 }
 
@@ -472,6 +473,37 @@ message LootTransaction {
   // acquired (EQL auto-takes it), so clients accrue on receipt — but must skip
   // these when pairing an item name from loot chat with its sale amount.
   bool coin_from_corpse = 5;
+}
+
+// One recorded loot row from the host's loot store. The host records as it
+// decodes, so this is history — distinct from LootTransaction/LootDrops, which
+// are the live events it was built from.
+message LootRecord {
+  int64  ts           = 1;   // epoch ms
+  // "message" = what the player acquired, "window" = corpse contents,
+  // "coin" = a coin pile (item_name is "Coin").
+  string source       = 2;
+  string item_name    = 3;
+  uint32 item_id      = 4;   // 0 = unknown
+  uint32 icon         = 5;   // 0 = none; window rows only
+  uint32 qty          = 6;
+  string mob_name     = 7;   // raw, e.g. "an ice giant"
+  string mob_norm     = 8;   // article-stripped + lowercased — the grouping key
+  uint32 corpse_id    = 9;   // 0 = none
+  string zone_short   = 10;
+  string zone_base    = 11;  // instance suffix stripped
+  string instance     = 12;  // "", "solo", "multi", "eqlraidgroup"
+  bool   sold         = 13;
+  uint32 money_copper = 14;  // sale proceeds, or the pile on a coin row
+  // "inventory" | "sold" | "created" | "corpse_coin" | a storage destination
+  // ("tradeskill depot", "Dragon Hoard"). Empty when the line said nothing.
+  string disposition  = 15;
+  string looter       = 16;
+}
+
+// Reply to a LootQuery, on the requesting connection only. Newest first.
+message LootPage {
+  repeated LootRecord rows = 1;
 }
 
 message ChatMessage {

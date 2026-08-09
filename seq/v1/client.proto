@@ -130,6 +130,15 @@ message SetActiveBox {
 // envelope on the same connection only — not broadcast. Empty payload.
 message ListMapPackages {}
 
+// Client -> server request for recorded loot history. The host replies with a
+// LootPage on the same connection only — not broadcast. Rides the normal
+// socket rather than a side channel, so there is no second port to discover.
+message LootQuery {
+  // Newest-first row cap. 0 means the host's default; it also clamps, so a
+  // client cannot ask for the whole table.
+  uint32 limit = 1;
+}
+
 // Client -> server: switch the active map provider package to `id` (as seen
 // in MapPackagesUpdate.packages[].id; "default" = the flat maps root). The
 // daemon records + persists the choice, re-resolves the current zone's map,
@@ -154,5 +163,6 @@ message ClientEnvelope {
     SetActiveBox     set_active_box      = 10;
     ListMapPackages  list_map_packages   = 11;
     SetMapPackage    set_map_package     = 12;
+    LootQuery        loot_query          = 13;
   }
 }

@@ -1,6 +1,6 @@
-# showeq-proto
+# scry-proto
 
-Wire protocol for the ShowEQ daemon / client split. Authoritative `.proto`
+Wire protocol for the Scry daemon / client split. Authoritative `.proto`
 schema consumed by the C++ daemon, the TypeScript web client, and the
 forthcoming Rust decoder.
 
@@ -23,4 +23,4 @@ CI enforces `buf breaking --against` the previous tag.
 
 MIT. See [LICENSE](LICENSE). The permissive license is deliberate: any
 client — open-source, proprietary, personal — can consume the schema without
-GPL obligations, even though the reference daemon (`showeq-daemon`) is GPL-2.0.
+GPL obligations, even though the reference daemon (`scry-cpp`) is GPL-2.0.

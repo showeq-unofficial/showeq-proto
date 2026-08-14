@@ -184,7 +184,7 @@ message Spawn {
   //   0=Head 1=Chest 2=Arms 3=Waist 4=Gloves 5=Legs 6=Feet
   //   7=Primary(weapon) 8=Secondary(weapon/shield)
   // Armor slots 0-6 use material codes; weapon slots 7-8 use weapon model
-  // codes. See showeq-web/src/lib/equipModels.ts for name lookup tables.
+  // codes. See scry-web/src/lib/equipModels.ts for name lookup tables.
   // 0 = empty slot. Populated for all humanoid races and common NPC races;
   // non-humanoid NPCs populate only slots 7-8.
   repeated uint32 equip_models = 20;
@@ -243,9 +243,11 @@ message Snapshot {
   // sniffed client is currently connected to. Empty before the first
   // world->zone handoff observed since daemon start.
   ZoneServer          zone_server  = 12;
-  // The daemon's data namespace (SEQ_DATA_NAMESPACE): ".showeq" for Live,
-  // ".showeq/eql" for EQL. Clients write per-backend data (e.g. the loot DB)
+  // The daemon's data namespace (SEQ_DATA_NAMESPACE): ".scry" for Live,
+  // ".scry/eql" for EQL. Clients write per-backend data (e.g. the loot DB)
   // under ~/<data_namespace>/ so EQL and Live don't share files.
+  // Was ".showeq" before the Scry rename; the daemon still READS the old
+  // root as a fallback, but always reports the new one here.
   string              data_namespace = 13;
 }
 
@@ -408,13 +410,13 @@ message PlayerStats {
   // Sparse list — only skills the player has learned (legacy showeq uses
   // value=255 as an "invalid/unlearned" sentinel; daemon filters those
   // before sending). Names live in the web client (mirror of
-  // showeq-daemon/src/skills.h). Updated on every Player::changeSkill /
+  // scry-cpp/src/skills.h). Updated on every Player::changeSkill /
   // addSkill so the client can diff and synthesize a "skill-up" log.
   repeated SkillEntry skills = 23;
   // Unspent AA points the player can allocate. Live: charProfileStruct
   // aa_unspent at wire offset 19519 (resolved 2026-05-02). Quarm: the
   // single Mac aapoints field IS the unspent count (per
-  // showeq-daemon-quarm/src/everquest.h:788).
+  // scry-cpp-quarm/src/everquest.h:788).
   uint32 aa_unspent  = 24;
   // Sparse list — only the AAs the player has actually purchased
   // (rank > 0). Auto-grants from charProfileStruct.aa_array (rank=0)
@@ -507,7 +509,7 @@ message LootPage {
 }
 
 message ChatMessage {
-  // Channel index from showeq-daemon/src/message.h's MessageType enum:
+  // Channel index from scry-cpp/src/message.h's MessageType enum:
   // 0=Guild, 2=Group, 3=Shout, 4=Auction, 5=OOC, 7=Tell, 8=Say,
   // 11=GMSay, 14=GMTell, 15=Raid. Server-coloured messages collapse
   // onto a small set of MTs (see chat_color for full fidelity).
@@ -517,7 +519,7 @@ message ChatMessage {
   // broadcast channels.
   string target  = 3;
   string text    = 4;
-  // Raw EQ ChatColor (CC_* in showeq-daemon/src/everquest.h). Carries
+  // Raw EQ ChatColor (CC_* in scry-cpp/src/everquest.h). Carries
   // the full client-side colour fidelity for OP_FormattedMessage /
   // SimpleMessage / SpecialMessage. 0 (CC_Default) when the message
   // came in via OP_ChannelMessage and there's no wire colour to relay
@@ -617,7 +619,7 @@ message CombatEvent {
   string spell_name  = 8;
 }
 
-// One user-defined Category from showeq-daemon/src/category.h's
+// One user-defined Category from scry-cpp/src/category.h's
 // CategoryMgr — name + display color. The daemon's filter pattern
 // (Category::filter / filterout strings) is not exposed; matching
 // happens daemon-side, and the client only sees the resulting per-
@@ -713,7 +715,7 @@ message Targeted {
   uint32 spawn_id = 1;
 }
 
-// One promoted spawn point as tracked by showeq-daemon's SpawnMonitor —
+// One promoted spawn point as tracked by scry-cpp's SpawnMonitor —
 // a recurring NPC pop location with a learned respawn cycle. Points are
 // promoted once the same coords see a second spawn after a death; the
 // time gap between the death and that second pop becomes diff_time_s,

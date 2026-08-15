@@ -1,8 +1,11 @@
 # scry-proto
 
 Wire protocol for the Scry daemon / client split. Authoritative `.proto`
-schema consumed by the C++ daemon, the TypeScript web client, and the
-forthcoming Rust decoder.
+schema, consumed as a git submodule (or, for the Elixir `scry` daemon, via
+a sibling-checkout `protoc` invocation) by every daemon and client in the
+Scry family: `scry-cpp`/`scry-cpp-quarm` and `scry-qt` (C++/Qt),
+`scry-web`/`scry-web-demo` (TypeScript), `scry` (Elixir), and
+`iced-miseru` (Rust).
 
 ## Layout
 
